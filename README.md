@@ -63,6 +63,7 @@ User Interface:
 
 The interface provides dynamic dropdowns, showing data relevant to the selected country and league.
 A progress spinner will show while the app fetches the data.
+
 Demo
 
 Future Improvements
