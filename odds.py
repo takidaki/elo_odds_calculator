@@ -303,8 +303,11 @@ if "home_table" in st.session_state and "away_table" in st.session_state:
     draw_prob_slider = st.slider("Select Draw Probability:", 0.15, 0.4, default_draw_prob, 0.01, key="draw_prob_slider")
     
     # Adjusting win probabilities with draw probability
-    home_win = home_win_prob - (draw_prob_slider / 2)
-    away_win = away_win_prob - (draw_prob_slider / 2)
+
+    remaining_prob = 1 - draw_prob_slider
+    home_win = home_win_prob*remaining_prob
+    away_win = away_win_prob*remaining_prob
+
 
     home_odds = 1 / home_win if home_win > 0 else float('inf')
     away_odds = 1 / away_win if away_win > 0 else float('inf')
