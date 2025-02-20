@@ -294,8 +294,10 @@ if "home_table" in st.session_state and "away_table" in st.session_state:
         default_draw_prob = 0.18
     elif 0.81 <= home_win_prob <= 0.90:
         default_draw_prob = 0.16
-    elif 0.91 <= home_win_prob <= 0.99:
+    elif 0.91 <= home_win_prob <= 0.95:
         default_draw_prob = 0.14
+    elif 0.96 <= home_win_prob <= 0.99:
+        default_draw_prob = 0.11
     else:
         default_draw_prob = 0.26  # Default value if no conditions are met
     
