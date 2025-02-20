@@ -243,11 +243,15 @@ if "home_table" in st.session_state and "away_table" in st.session_state:
     
     # Ratings for selected teams
     home_rating = home_team_data.iloc[0, 1]  
-    away_rating = away_team_data.iloc[0, 1]  
+    away_rating = away_team_data.iloc[0, 1] 
+
+     #alternative ratings for selected teams
+    home  = 10^(home_rating/400)
+    away = 10^(away_rating/400)
     
     # Calculating Win Probability
-    home_win_prob = 1 / (1 + math.exp(-(home_rating - away_rating)/400))
-    away_win_prob = 1 - home_win_prob
+    home_win_prob = home/(home+away)
+    away_win_prob = away/(away+home)
     
     # Display Ratings
     st.markdown(f'<div class="section-header">Selected Teams Ratings</div>', unsafe_allow_html=True)
