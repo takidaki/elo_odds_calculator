@@ -246,8 +246,8 @@ if "home_table" in st.session_state and "away_table" in st.session_state:
     away_rating = away_team_data.iloc[0, 1] 
 
      #alternative ratings for selected teams
-    home  = 10^(home_rating/400)
-    away = 10^(away_rating/400)
+    home  = 10**(home_rating/400)
+    away = 10**(away_rating/400)
     
     # Calculating Win Probability
     home_win_prob = home/(home+away)
