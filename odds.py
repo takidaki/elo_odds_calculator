@@ -302,7 +302,7 @@ if "home_table" in st.session_state and "away_table" in st.session_state:
         default_draw_prob = 0.26  # Default value if no conditions are met
     
     # Slider for draw probability
-    draw_prob_slider = st.slider("Select Draw Probability:", 0.15, 0.4, default_draw_prob, 0.01, key="draw_prob_slider")
+    draw_prob_slider = st.slider("Select Draw Probability:", 0.1, 0.4, default_draw_prob, 0.01, key="draw_prob_slider")
     
     # Adjusting win probabilities with draw probability
 
