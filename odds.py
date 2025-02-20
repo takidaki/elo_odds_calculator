@@ -287,17 +287,17 @@ if "home_table" in st.session_state and "away_table" in st.session_state:
     elif 0.36 <= home_win_prob <= 0.45:
         default_draw_prob = 0.28
     elif 0.46 <= home_win_prob <= 0.70:
-        default_draw_prob = 0.30
-    elif 0.71 <= home_win_prob <= 0.75:
-        default_draw_prob = 0.28
-    elif 0.76 <= home_win_prob <= 0.80:
         default_draw_prob = 0.26
-    elif 0.81 <= home_win_prob <= 0.90:
-        default_draw_prob = 0.24
-    elif 0.91 <= home_win_prob <= 0.99:
+    elif 0.71 <= home_win_prob <= 0.75:
+        default_draw_prob = 0.22
+    elif 0.76 <= home_win_prob <= 0.80:
         default_draw_prob = 0.18
+    elif 0.81 <= home_win_prob <= 0.90:
+        default_draw_prob = 0.16
+    elif 0.91 <= home_win_prob <= 0.99:
+        default_draw_prob = 0.14
     else:
-        default_draw_prob = 0.25  # Default value if no conditions are met
+        default_draw_prob = 0.26  # Default value if no conditions are met
     
     # Slider for draw probability
     draw_prob_slider = st.slider("Select Draw Probability:", 0.15, 0.4, default_draw_prob, 0.01, key="draw_prob_slider")
