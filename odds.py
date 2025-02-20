@@ -204,7 +204,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Streamlit header
-st.markdown('<div class="header">⚽ ELO Ratings Odds Calculator</div>', unsafe_allow_html=True)
+st.markdown('<div class="header">⚽ Elo Ratings Odds Calculator</div>', unsafe_allow_html=True)
 
 # Sidebar for selecting country and league
 st.sidebar.header("⚽ Select Match Details")
