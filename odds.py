@@ -8,7 +8,7 @@ import random
 
 # Dictionary of countries and leagues
 leagues_dict = {
-    "England": ["UK1", "UK2", "UK3", "UK4", "UK5", "UK6N", "UK6S", "UK7N"],
+        "England": ["UK1", "UK2", "UK3", "UK4", "UK5", "UK6N", "UK6S", "UK7N"],
         "Germany": ["DE1", "DE2", "DE3", "DE4SW", "DE4W", "DE4N", "DE4NO", "DE4B"],
         "Italy": ["IT1", "IT2", "IT3C", "IT3B", "IT3A"],
         "Spain": ["ES1", "ES2", "ES3G1", "ES3G2", "ES3G3", "ES3G4", "ES3G5"],
@@ -126,7 +126,7 @@ leagues_dict = {
         "Tanzania": ["TZ1"],
         "Gambia": ["GM1"],
         "Sudan": ["SD1"]
-    # Same dictionary as before
+    
 }
 
 # List of spinner messages
@@ -280,15 +280,15 @@ if "home_table" in st.session_state and "away_table" in st.session_state:
 
     # Display Win Probabilities
     st.markdown(f'<div class="section-header">Win Probability</div>', unsafe_allow_html=True)
-    st.write(f"**Home Team Win Probability:** {home_win_prob:.2f}")
-    st.write(f"**Away Team Win Probability:** {away_win_prob:.2f}")
+    st.write(f"**{home_team} Win Probability:** {home_win_prob:.2f}")
+    st.write(f"**{away_team} Win Probability:** {away_win_prob:.2f}")
 
     # Draw No Bet Odds Calculation
     home_draw_no_bet_odds = 1 / home_win_prob
     away_draw_no_bet_odds = 1 / away_win_prob
     st.markdown(f'<div class="section-header">Draw No Bet Odds</div>', unsafe_allow_html=True)
-    st.write(f"**Home Team Draw No Bet Odds:** {home_draw_no_bet_odds:.2f}")
-    st.write(f"**Away Team Draw No Bet Odds:** {away_draw_no_bet_odds:.2f}")
+    st.write(f"**{home_team} Draw No Bet Odds:** {home_draw_no_bet_odds:.2f}")
+    st.write(f"**{away_team} Draw No Bet Odds:** {away_draw_no_bet_odds:.2f}")
 
     # Determine default value for draw probability slider based on home_win_prob
     if 0.01 <= home_win_prob <= 0.10:
@@ -332,6 +332,6 @@ if "home_table" in st.session_state and "away_table" in st.session_state:
 
     # Displaying 1X2 Odds
     st.markdown(f'<div class="section-header">1X2 Betting Odds</div>', unsafe_allow_html=True)
-    st.write(f"**Home Win Odds**: {home_odds:.2f}")
+    st.write(f"**{home_team} Win Odds**: {home_odds:.2f}")
     st.write(f"**Draw Odds**: {draw_odds:.2f}")
-    st.write(f"**Away Win Odds**: {away_odds:.2f}")
+    st.write(f"**{away_team} Win Odds**: {away_odds:.2f}")
