@@ -4,6 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 import io
 import math
+import random
 
 # Dictionary of countries and leagues
 leagues_dict = {
@@ -128,6 +129,14 @@ leagues_dict = {
     # Same dictionary as before
 }
 
+# List of spinner messages
+spinner_messages = [
+    "Fetching the latest football ratings...",
+    "Hold tight, we're gathering the data...",
+    "Just a moment, crunching the numbers...",
+    "Loading the football magic...",
+    "Almost there, preparing the stats..."
+]
 # Function to fetch table from website
 def fetch_table(country, league, table_type="home"):
     url = f"https://www.soccer-rating.com/{country}/{league}/{table_type}/"
@@ -214,7 +223,7 @@ selected_league = st.sidebar.selectbox("Select League:", leagues_dict[selected_c
 # Fetch data if not available
 if "home_table" not in st.session_state or "away_table" not in st.session_state or st.session_state.get("selected_league") != selected_league:
     if st.sidebar.button("Get Ratings", key="fetch_button", help="Fetch ratings and tables for selected country and league"):
-        with st.spinner("The football ratings are warming up... almost ready!"):
+        with st.spinner(random.choice(spinner_messages)):  # Randomize spinner text
             home_table = fetch_table(selected_country, selected_league, "home")
             away_table = fetch_table(selected_country, selected_league, "away")
             
