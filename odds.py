@@ -215,6 +215,10 @@ st.markdown("""
 # Streamlit header
 st.markdown('<div class="header">⚽ Elo Ratings Odds Calculator</div>', unsafe_allow_html=True)
 
+# Explanation tooltip
+if "data_fetched" not in st.session_state:
+    st.info("Use the sidebar to select a country and league. Click 'Get Ratings' to fetch the latest data.")
+
 # Sidebar for selecting country and league
 st.sidebar.header("⚽ Select Match Details")
 selected_country = st.sidebar.selectbox("Select Country:", list(leagues_dict.keys()), index=0)
@@ -226,6 +230,11 @@ if "home_table" not in st.session_state or "away_table" not in st.session_state 
         with st.spinner(random.choice(spinner_messages)):  # Randomize spinner text
             home_table = fetch_table(selected_country, selected_league, "home")
             away_table = fetch_table(selected_country, selected_league, "away")
+
+            # Mark data as fetched
+            st.session_state["data_fetched"] = True
+            st.success("Data fetched successfully!")
+            st.empty()  # Clear the info message
             
             if isinstance(home_table, pd.DataFrame) and isinstance(away_table, pd.DataFrame):
                 home_table = home_table.drop(home_table.columns[[0, 2, 3]], axis=1)
