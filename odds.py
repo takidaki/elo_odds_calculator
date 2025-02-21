@@ -78,7 +78,7 @@ leagues_dict = {
         "Venezuela": ["VE1"],
         "Peru": ["PE1", "PE2"],
         "Panama": ["PA1"],
-        "El Salvador": ["SV1"],
+        "El-Salvador": ["SV1"],
         "Japan": ["JP1", "JP2", "JP3"],
         "South-Korea": ["KR1", "KR2", "KR3"],
         "China": ["CN1", "CN2", "CN3"],
