@@ -231,10 +231,7 @@ if "home_table" not in st.session_state or "away_table" not in st.session_state 
             home_table = fetch_table(selected_country, selected_league, "home")
             away_table = fetch_table(selected_country, selected_league, "away")
 
-            # Mark data as fetched
-            st.session_state["data_fetched"] = True
-            st.success("Data fetched successfully!")
-            st.empty()  # Clear the info message
+            
             
             if isinstance(home_table, pd.DataFrame) and isinstance(away_table, pd.DataFrame):
                 home_table = home_table.drop(home_table.columns[[0, 2, 3]], axis=1)
