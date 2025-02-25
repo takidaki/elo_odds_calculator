@@ -7,7 +7,7 @@ import math
 import random
 
 # Set page title and icon
-st.set_page_config(page_title="Elo Ratings Odds Calculator", page_icon="1X2")
+st.set_page_config(page_title="Elo Ratings Odds Calculator", page_icon="odds_icon.png")
 
 # Dictionary of countries and leagues
 leagues_dict = {
