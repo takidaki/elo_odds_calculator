@@ -6,6 +6,9 @@ import io
 import math
 import random
 
+# Set page title and icon
+st.set_page_config(page_title="Elo Ratings Odds Calculator", page_icon="1X2")
+
 # Dictionary of countries and leagues
 leagues_dict = {
         "England": ["UK1", "UK2", "UK3", "UK4", "UK5", "UK6N", "UK6S", "UK7N"],
