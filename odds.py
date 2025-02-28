@@ -283,15 +283,21 @@ if "home_table" in st.session_state and "away_table" in st.session_state:
 
     # Display Win Probabilities
     st.markdown(f'<div class="section-header">Win Probability</div>', unsafe_allow_html=True)
-    st.write(f"**{home_team} Win Probability:** {home_win_prob:.2f}")
-    st.write(f"**{away_team} Win Probability:** {away_win_prob:.2f}")
+    col1, col2 = st.columns(2)  # Create two columns for layout
+    with col1:
+        st.write(f"**{home_team} Win Probability:** {home_win_prob:.2f}")
+    with col2:
+        st.write(f"**{away_team} Win Probability:** {away_win_prob:.2f}")
 
     # Draw No Bet Odds Calculation
     home_draw_no_bet_odds = 1 / home_win_prob
     away_draw_no_bet_odds = 1 / away_win_prob
     st.markdown(f'<div class="section-header">Draw No Bet Odds</div>', unsafe_allow_html=True)
-    st.write(f"**{home_team} Draw No Bet Odds:** {home_draw_no_bet_odds:.2f}")
-    st.write(f"**{away_team} Draw No Bet Odds:** {away_draw_no_bet_odds:.2f}")
+    col3, col4 = st.columns(2)  # Create two columns for layout
+    with col3:
+        st.write(f"**{home_team} Draw No Bet Odds:** {home_draw_no_bet_odds:.2f}")
+    with col4:
+        st.write(f"**{away_team} Draw No Bet Odds:** {away_draw_no_bet_odds:.2f}")
 
     # Determine default value for draw probability slider based on home_win_prob
     if 0.01 <= home_win_prob <= 0.10:
@@ -335,6 +341,10 @@ if "home_table" in st.session_state and "away_table" in st.session_state:
 
     # Displaying 1X2 Odds
     st.markdown(f'<div class="section-header">1X2 Betting Odds</div>', unsafe_allow_html=True)
-    st.write(f"**{home_team} Win Odds**: {home_odds:.2f}")
-    st.write(f"**Draw Odds**: {draw_odds:.2f}")
-    st.write(f"**{away_team} Win Odds**: {away_odds:.2f}")
+    col1, col2, col3 = st.columns(3)  # Create three columns for layout
+    with col1:
+        st.write(f"**{home_team} Win Odds**: {home_odds:.2f}")
+    with col2:
+        st.write(f"**Draw Odds**: {draw_odds:.2f}")
+    with col3:
+        st.write(f"**{away_team} Win Odds**: {away_odds:.2f}")
