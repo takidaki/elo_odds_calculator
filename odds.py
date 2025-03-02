@@ -501,20 +501,18 @@ with tab1:
             st.write("The required columns ('Goals' and/or 'M') were not found in the league table.")
 
     # Calculate Expected Goals using the per game statistics
+    home_expected_goals = None
+    away_expected_goals = None
+
     if home_goals_for_per_game is not None and away_goals_against_per_game is not None:
         home_expected_goals = (home_goals_for_per_game + away_goals_against_per_game) / 2
-    else:
-        home_expected_goals = None
 
     if away_goals_for_per_game is not None and home_goals_against_per_game is not None:
         away_expected_goals = (away_goals_for_per_game + home_goals_against_per_game) / 2
-    else:
-        away_expected_goals = None
 
+    total_expected_goals = None
     if home_expected_goals is not None and away_expected_goals is not None:
         total_expected_goals = ((home_expected_goals + away_expected_goals) + (avg_goals_per_match)) / 2
-    else:
-        total_expected_goals = None
 
     # Display Expected Goals
     st.markdown('<div class="section-header">Expected Goals</div>', unsafe_allow_html=True)
