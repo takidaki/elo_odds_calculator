@@ -150,12 +150,38 @@ def fetch_table(country, league, table_type="home"):
         soup = BeautifulSoup(response.text, "lxml")
         html_io = io.StringIO(str(soup))
         tables = pd.read_html(html_io, flavor="lxml")
-        return tables[14] if tables else None
+        
+        # Get the rating table as before (using table index 14)
+        rating_table = tables[14] if tables and len(tables) > 14 else None
+        
+        # Expected columns for the league table
+        expected_columns = {"Home", "Away", "Home.4", "Away.4"}
+        
+        # Try to get the league table from possible indices first
+        possible_indices = [28, 24, 23]
+        league_table = None
+        for idx in possible_indices:
+            if tables and len(tables) > idx:
+                candidate = tables[idx]
+                candidate_cols = set(candidate.columns.astype(str))
+                if expected_columns.issubset(candidate_cols):
+                    league_table = candidate
+                    break
+        
+        # If not found, loop through all tables to identify one by expected columns
+        if league_table is None:
+            for candidate in tables:
+                candidate_cols = set(candidate.columns.astype(str))
+                if expected_columns.issubset(candidate_cols):
+                    league_table = candidate
+                    break
+                    
+        return rating_table, league_table
     except Exception as e:
-        return None
+        return None, None
 
-# Streamlit UI with custom CSS
-st.markdown("""
+
+st.markdown("""\
     <style>
         body {
             background-color: #f4f4f9;
@@ -230,17 +256,16 @@ selected_league = st.sidebar.selectbox("Select League:", leagues_dict[selected_c
 # Fetch data if not available
 if "home_table" not in st.session_state or "away_table" not in st.session_state or st.session_state.get("selected_league") != selected_league:
     if st.sidebar.button("Get Ratings", key="fetch_button", help="Fetch ratings and tables for selected country and league"):
-        with st.spinner(random.choice(spinner_messages)):  # Randomize spinner text
-            home_table = fetch_table(selected_country, selected_league, "home")
-            away_table = fetch_table(selected_country, selected_league, "away")
-
-            
+        with st.spinner(random.choice(spinner_messages)):
+            home_table, home_league_table = fetch_table(selected_country, selected_league, "home")
+            away_table, away_league_table = fetch_table(selected_country, selected_league, "away")
             
             if isinstance(home_table, pd.DataFrame) and isinstance(away_table, pd.DataFrame):
                 home_table = home_table.drop(home_table.columns[[0, 2, 3]], axis=1)
                 away_table = away_table.drop(away_table.columns[[0, 2, 3]], axis=1)
                 st.session_state["home_table"] = home_table
                 st.session_state["away_table"] = away_table
+                st.session_state["league_table"] = home_league_table  # Store the league table
                 st.session_state["selected_league"] = selected_league
                 st.success("Data fetched successfully!")
             else:
@@ -254,6 +279,8 @@ if "home_table" in st.session_state and "away_table" in st.session_state:
     # Dropdown for selecting teams
     home_team = st.selectbox("Select Home Team:", st.session_state["home_table"].iloc[:, 0])
     away_team = st.selectbox("Select Away Team:", st.session_state["away_table"].iloc[:, 0])
+
+    # Display goals statistics from league table
 
     # Fetching team ratings
     home_team_data = st.session_state["home_table"][st.session_state["home_table"].iloc[:, 0] == home_team]
@@ -348,3 +375,85 @@ if "home_table" in st.session_state and "away_table" in st.session_state:
         st.write(f"**Draw Odds**: {draw_odds:.2f}")
     with col3:
         st.write(f"**{away_team} Win Odds**: {away_odds:.2f}")
+        
+    
+    
+    
+    if "league_table" in st.session_state and st.session_state["league_table"] is not None:
+        league_table = st.session_state["league_table"]
+    # Assuming team names are in the 2nd column (index 1) of the league table
+        home_team_row = league_table[league_table.iloc[:, 1] == home_team]
+        away_team_row = league_table[league_table.iloc[:, 1] == away_team]
+        
+        def extract_goals_parts(value):
+            try:
+                parts = value.split(":")
+                if len(parts) >= 2:
+                    goals_for = float(parts[0].strip())
+                    goals_against = float(parts[1].strip())
+                    return goals_for, goals_against
+                else:
+                    return None, None
+            except Exception as e:
+                return None, None
+
+    # ----- Home Team Calculations -----
+    if not home_team_row.empty:
+        home_raw = home_team_row.iloc[0]["Home.4"]
+        home_goals_for, home_goals_against = extract_goals_parts(home_raw)
+        try:
+            home_games = float(home_team_row.iloc[0]["Home"])
+        except Exception as e:
+            home_games = None
+        home_goals_for_per_game = home_goals_for / home_games if home_goals_for is not None and home_games and home_games != 0 else None
+        home_goals_against_per_game = home_goals_against / home_games if home_goals_against is not None and home_games and home_games != 0 else None
+    else:
+        home_goals_for_per_game = None
+        home_goals_against_per_game = None
+
+    # ----- Away Team Calculations -----
+    if not away_team_row.empty:
+        away_raw = away_team_row.iloc[0]["Away.4"]
+        away_goals_for, away_goals_against = extract_goals_parts(away_raw)
+        try:
+            away_games = float(away_team_row.iloc[0]["Away"])
+        except Exception as e:
+            away_games = None
+        away_goals_for_per_game = away_goals_for / away_games if away_goals_for is not None and away_games and away_games != 0 else None
+        away_goals_against_per_game = away_goals_against / away_games if away_goals_against is not None and away_games and away_games != 0 else None
+    else:
+        away_goals_for_per_game = None
+        away_goals_against_per_game = None
+
+    # Display Goals For per Game
+    st.markdown('<div class="section-header">Goals For per Game</div>', unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
+    with col1:
+        if home_goals_for_per_game is not None:
+            st.write(f"**{home_team} Goals For per Game:** {home_goals_for_per_game:.2f}")
+        else:
+            st.write(f"**{home_team} Goals For per Game:** N/A")
+    with col2:
+        if away_goals_for_per_game is not None:
+            st.write(f"**{away_team} Goals For per Game:** {away_goals_for_per_game:.2f}")
+        else:
+            st.write(f"**{away_team} Goals For per Game:** N/A")
+
+    # Display Goals Against per Game
+    st.markdown('<div class="section-header">Goals Against per Game</div>', unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
+    with col1:
+        if home_goals_against_per_game is not None:
+            st.write(f"**{home_team} Goals Against per Game:** {home_goals_against_per_game:.2f}")
+        else:
+            st.write(f"**{home_team} Goals Against per Game:** N/A")
+    with col2:
+        if away_goals_against_per_game is not None:
+            st.write(f"**{away_team} Goals Against per Game:** {away_goals_against_per_game:.2f}")
+        else:
+            st.write(f"**{away_team} Goals Against per Game:** N/A")
+   
+    # Display goals statistics
+if "league_table" in st.session_state and st.session_state["league_table"] is not None:
+    st.markdown('<div class="section-header">League Table</div>', unsafe_allow_html=True)
+    st.dataframe(st.session_state["league_table"])
