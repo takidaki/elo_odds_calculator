@@ -555,7 +555,7 @@ with tab2:
         # Show only the specified columns
         league_table.rename(columns={'Unnamed: 0': 'Position'}, inplace=True)  # Rename the column
         # Display league table as text
-       for index, row in league_table.iterrows():
+        for index, row in league_table.iterrows():
             team_name = row[league_table.columns[1]]
             points = row["P."]  # Get the points from the last column
             if pd.notna(team_name):  # Check if team name is not NaN
