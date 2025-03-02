@@ -262,7 +262,7 @@ selected_country = st.sidebar.selectbox("Select Country:", list(leagues_dict.key
 selected_league = st.sidebar.selectbox("Select League:", leagues_dict[selected_country], index=0)
 
 # Create two tabs
-tab1, tab2 = st.tabs(["Elo Ratings Odds Calculator", "League Table"])
+tab1, tab2 = st.tabs(["Odds Calculator & Match Analysis", "League Table"])
 
 with tab1:
     # All existing calculation code goes here
