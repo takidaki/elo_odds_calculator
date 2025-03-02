@@ -9,6 +9,8 @@ import random
 # Set page title and icon
 st.set_page_config(page_title="Elo Ratings Odds Calculator", page_icon="odds_icon.png")
 
+
+
 # Dictionary of countries and leagues
 leagues_dict = {
         "England": ["UK1", "UK2", "UK3", "UK4", "UK5", "UK6N", "UK6S", "UK7N"],
@@ -83,6 +85,10 @@ leagues_dict = {
         "Peru": ["PE1", "PE2"],
         "Panama": ["PA1"],
         "El-Salvador": ["SV1"],
+        "Jamaica": ["JM1"],
+        "Nicaragua": ["NC1"],
+        "Canada": ["CA1"],
+        "Haiti": ["HT1"],
         "Japan": ["JP1", "JP2", "JP3"],
         "South-Korea": ["KR1", "KR2", "KR3"],
         "China": ["CN1", "CN2", "CN3"],
@@ -113,6 +119,8 @@ leagues_dict = {
         "Lebanon": ["LB1"],
         "Bangladesh": ["BD1"],
         "Singapore": ["SG1"],
+        "Cambodia": ["KH1"],
+        "Kyrgyzstan": ["KG1"],
         "Egypt": ["EG1", "EG2"],
         "Algeria": ["DZ1", "DZ2"],
         "Tunisia": ["TN1", "TN2"],
@@ -253,207 +261,303 @@ st.sidebar.header("⚽ Select Match Details")
 selected_country = st.sidebar.selectbox("Select Country:", list(leagues_dict.keys()), index=0)
 selected_league = st.sidebar.selectbox("Select League:", leagues_dict[selected_country], index=0)
 
-# Fetch data if not available
-if "home_table" not in st.session_state or "away_table" not in st.session_state or st.session_state.get("selected_league") != selected_league:
-    if st.sidebar.button("Get Ratings", key="fetch_button", help="Fetch ratings and tables for selected country and league"):
-        with st.spinner(random.choice(spinner_messages)):
-            home_table, home_league_table = fetch_table(selected_country, selected_league, "home")
-            away_table, away_league_table = fetch_table(selected_country, selected_league, "away")
-            
-            if isinstance(home_table, pd.DataFrame) and isinstance(away_table, pd.DataFrame):
-                home_table = home_table.drop(home_table.columns[[0, 2, 3]], axis=1)
-                away_table = away_table.drop(away_table.columns[[0, 2, 3]], axis=1)
-                st.session_state["home_table"] = home_table
-                st.session_state["away_table"] = away_table
-                st.session_state["league_table"] = home_league_table  # Store the league table
-                st.session_state["selected_league"] = selected_league
-                st.success("Data fetched successfully!")
-            else:
-                st.error("Error fetching one or both tables. Please try again.")
+# Create two tabs
+tab1, tab2 = st.tabs(["Elo Ratings Odds Calculator", "League Table"])
 
-# Display team selection and ratings
-if "home_table" in st.session_state and "away_table" in st.session_state:
-    # Main layout to display selected teams and odds
-    st.markdown(f'<div class="section-header">⚽ Match Details</div>', unsafe_allow_html=True)
-    
-    # Dropdown for selecting teams
-    home_team = st.selectbox("Select Home Team:", st.session_state["home_table"].iloc[:, 0])
-    away_team = st.selectbox("Select Away Team:", st.session_state["away_table"].iloc[:, 0])
+with tab1:
+    # All existing calculation code goes here
+    # Fetch data if not available
+    if "home_table" not in st.session_state or "away_table" not in st.session_state or st.session_state.get("selected_league") != selected_league:
+        if st.sidebar.button("Get Ratings", key="fetch_button", help="Fetch ratings and tables for selected country and league"):
+            with st.spinner(random.choice(spinner_messages)):
+                home_table, home_league_table = fetch_table(selected_country, selected_league, "home")
+                away_table, away_league_table = fetch_table(selected_country, selected_league, "away")
+                
+                if isinstance(home_table, pd.DataFrame) and isinstance(away_table, pd.DataFrame):
+                    home_table = home_table.drop(home_table.columns[[0, 2, 3]], axis=1)
+                    away_table = away_table.drop(away_table.columns[[0, 2, 3]], axis=1)
+                    st.session_state["home_table"] = home_table
+                    st.session_state["away_table"] = away_table
+                    st.session_state["league_table"] = home_league_table  # Store the league table
+                    st.session_state["selected_league"] = selected_league
+                    st.success("Data fetched successfully!")
+                else:
+                    st.error("Error fetching one or both tables. Please try again.")
 
-    # Display goals statistics from league table
-
-    # Fetching team ratings
-    home_team_data = st.session_state["home_table"][st.session_state["home_table"].iloc[:, 0] == home_team]
-    away_team_data = st.session_state["away_table"][st.session_state["away_table"].iloc[:, 0] == away_team]
-    
-    # Ratings for selected teams
-    home_rating = home_team_data.iloc[0, 1]  
-    away_rating = away_team_data.iloc[0, 1] 
-
-     #alternative ratings for selected teams
-    home  = 10**(home_rating/400)
-    away = 10**(away_rating/400)
-    
-    # Calculating Win Probability
-    home_win_prob = home/(home+away)
-    away_win_prob = away/(away+home)
-    
-    # Display Ratings
-    st.markdown(f'<div class="section-header">Selected Teams Ratings</div>', unsafe_allow_html=True)
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown(f"**{home_team} Home Rating**")
-        st.write(f"Rating: {home_rating}")
-    with col2:
-        st.markdown(f"**{away_team} Away Rating**")
-        st.write(f"Rating: {away_rating}")
-
-    # Display Win Probabilities
-    st.markdown(f'<div class="section-header">Win Probability</div>', unsafe_allow_html=True)
-    col1, col2 = st.columns(2)  # Create two columns for layout
-    with col1:
-        st.write(f"**{home_team} Win Probability:** {home_win_prob:.2f}")
-    with col2:
-        st.write(f"**{away_team} Win Probability:** {away_win_prob:.2f}")
-
-    # Draw No Bet Odds Calculation
-    home_draw_no_bet_odds = 1 / home_win_prob
-    away_draw_no_bet_odds = 1 / away_win_prob
-    st.markdown(f'<div class="section-header">Draw No Bet Odds</div>', unsafe_allow_html=True)
-    col3, col4 = st.columns(2)  # Create two columns for layout
-    with col3:
-        st.write(f"**{home_team} Draw No Bet Odds:** {home_draw_no_bet_odds:.2f}")
-    with col4:
-        st.write(f"**{away_team} Draw No Bet Odds:** {away_draw_no_bet_odds:.2f}")
-
-    # Determine default value for draw probability slider based on home_win_prob
-    if 0.01 <= home_win_prob <= 0.10:
-        default_draw_prob = 0.14
-    elif 0.11 <= home_win_prob <= 0.19:
-        default_draw_prob = 0.19
-    elif 0.20 <= home_win_prob <= 0.25:
-        default_draw_prob = 0.22
-    elif 0.26 <= home_win_prob <= 0.35:
-        default_draw_prob = 0.26
-    elif 0.36 <= home_win_prob <= 0.45:
-        default_draw_prob = 0.28
-    elif 0.46 <= home_win_prob <= 0.70:
-        default_draw_prob = 0.26
-    elif 0.71 <= home_win_prob <= 0.75:
-        default_draw_prob = 0.22
-    elif 0.76 <= home_win_prob <= 0.80:
-        default_draw_prob = 0.18
-    elif 0.81 <= home_win_prob <= 0.90:
-        default_draw_prob = 0.16
-    elif 0.91 <= home_win_prob <= 0.95:
-        default_draw_prob = 0.14
-    elif 0.96 <= home_win_prob <= 0.99:
-        default_draw_prob = 0.11
-    else:
-        default_draw_prob = 0.26  # Default value if no conditions are met
-    
-    # Slider for draw probability
-    draw_prob_slider = st.slider("Select Draw Probability:", 0.05, 0.4, default_draw_prob, 0.01, key="draw_prob_slider")
-    
-    # Adjusting win probabilities with draw probability
-
-    remaining_prob = 1 - draw_prob_slider
-    home_win = home_win_prob*remaining_prob
-    away_win = away_win_prob*remaining_prob
-
-
-    home_odds = 1 / home_win if home_win > 0 else float('inf')
-    away_odds = 1 / away_win if away_win > 0 else float('inf')
-    draw_odds = 1 / draw_prob_slider if draw_prob_slider > 0 else float('inf')
-
-    # Displaying 1X2 Odds
-    st.markdown(f'<div class="section-header">1X2 Betting Odds</div>', unsafe_allow_html=True)
-    col1, col2, col3 = st.columns(3)  # Create three columns for layout
-    with col1:
-        st.write(f"**{home_team} Win Odds**: {home_odds:.2f}")
-    with col2:
-        st.write(f"**Draw Odds**: {draw_odds:.2f}")
-    with col3:
-        st.write(f"**{away_team} Win Odds**: {away_odds:.2f}")
+    # Display team selection and ratings
+    if "home_table" in st.session_state and "away_table" in st.session_state:
+        # Main layout to display selected teams and odds
+        st.markdown(f'<div class="section-header">⚽ Match Details</div>', unsafe_allow_html=True)
         
-    
-    
-    
+        # Dropdown for selecting teams
+        home_team = st.selectbox("Select Home Team:", st.session_state["home_table"].iloc[:, 0])
+        away_team = st.selectbox("Select Away Team:", st.session_state["away_table"].iloc[:, 0])
+
+        # Fetching team ratings
+        home_team_data = st.session_state["home_table"][st.session_state["home_table"].iloc[:, 0] == home_team]
+        away_team_data = st.session_state["away_table"][st.session_state["away_table"].iloc[:, 0] == away_team]
+        
+        # Ratings for selected teams
+        home_rating = home_team_data.iloc[0, 1]  
+        away_rating = away_team_data.iloc[0, 1] 
+
+        # alternative ratings for selected teams
+        home  = 10**(home_rating/400)
+        away = 10**(away_rating/400)
+        
+        # Calculating Win Probability
+        home_win_prob = home/(home+away)
+        away_win_prob = away/(away+home)
+        
+        # Display Ratings
+        st.markdown(f'<div class="section-header">Selected Teams Ratings</div>', unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown(f"**{home_team} Home Rating**")
+            st.write(f"Rating: {home_rating}")
+        with col2:
+            st.markdown(f"**{away_team} Away Rating**")
+            st.write(f"Rating: {away_rating}")
+
+        # Display Win Probabilities
+        st.markdown(f'<div class="section-header">Win Probability</div>', unsafe_allow_html=True)
+        col1, col2 = st.columns(2)  # Create two columns for layout
+        with col1:
+            st.write(f"**{home_team} Win Probability:** {home_win_prob:.2f}")
+        with col2:
+            st.write(f"**{away_team} Win Probability:** {away_win_prob:.2f}")
+
+        # Draw No Bet Odds Calculation
+        home_draw_no_bet_odds = 1 / home_win_prob
+        away_draw_no_bet_odds = 1 / away_win_prob
+        st.markdown(f'<div class="section-header">Draw No Bet Odds</div>', unsafe_allow_html=True)
+        col3, col4 = st.columns(2)  # Create two columns for layout
+        with col3:
+            st.write(f"**{home_team} Draw No Bet Odds:** {home_draw_no_bet_odds:.2f}")
+        with col4:
+            st.write(f"**{away_team} Draw No Bet Odds:** {away_draw_no_bet_odds:.2f}")
+
+        # Determine default value for draw probability slider based on home_win_prob
+        if 0.01 <= home_win_prob <= 0.10:
+            default_draw_prob = 0.14
+        elif 0.11 <= home_win_prob <= 0.19:
+            default_draw_prob = 0.19
+        elif 0.20 <= home_win_prob <= 0.25:
+            default_draw_prob = 0.22
+        elif 0.26 <= home_win_prob <= 0.35:
+            default_draw_prob = 0.26
+        elif 0.36 <= home_win_prob <= 0.45:
+            default_draw_prob = 0.28
+        elif 0.46 <= home_win_prob <= 0.70:
+            default_draw_prob = 0.26
+        elif 0.71 <= home_win_prob <= 0.75:
+            default_draw_prob = 0.22
+        elif 0.76 <= home_win_prob <= 0.80:
+            default_draw_prob = 0.18
+        elif 0.81 <= home_win_prob <= 0.90:
+            default_draw_prob = 0.16
+        elif 0.91 <= home_win_prob <= 0.95:
+            default_draw_prob = 0.14
+        elif 0.96 <= home_win_prob <= 0.99:
+            default_draw_prob = 0.11
+        else:
+            default_draw_prob = 0.26  # Default value if no conditions are met
+        
+        # Slider for draw probability
+        draw_prob_slider = st.slider("Select Draw Probability:", 0.05, 0.4, default_draw_prob, 0.01, key="draw_prob_slider")
+        
+        # Adjusting win probabilities with draw probability
+
+        remaining_prob = 1 - draw_prob_slider
+        home_win = home_win_prob*remaining_prob
+        away_win = away_win_prob*remaining_prob
+
+
+        home_odds = 1 / home_win if home_win > 0 else float('inf')
+        away_odds = 1 / away_win if away_win > 0 else float('inf')
+        draw_odds = 1 / draw_prob_slider if draw_prob_slider > 0 else float('inf')
+
+        # Displaying 1X2 Odds
+        st.markdown(f'<div class="section-header">1X2 Betting Odds</div>', unsafe_allow_html=True)
+        col1, col2, col3 = st.columns(3)  # Create three columns for layout
+        with col1:
+            st.write(f"**{home_team} Win Odds**: {home_odds:.2f}")
+        with col2:
+            st.write(f"**Draw Odds**: {draw_odds:.2f}")
+        with col3:
+            st.write(f"**{away_team} Win Odds**: {away_odds:.2f}")
+        
+        
+        
+        
+        if "league_table" in st.session_state and st.session_state["league_table"] is not None:
+            league_table = st.session_state["league_table"]
+        # Assuming team names are in the 2nd column (index 1) of the league table
+            home_team_row = league_table[league_table.iloc[:, 1] == home_team]
+            away_team_row = league_table[league_table.iloc[:, 1] == away_team]
+            
+            def extract_goals_parts(value):
+                try:
+                    parts = value.split(":")
+                    if len(parts) >= 2:
+                        goals_for = float(parts[0].strip())
+                        goals_against = float(parts[1].strip())
+                        return goals_for, goals_against
+                    else:
+                        return None, None
+                except Exception as e:
+                    return None, None
+
+        # ----- Home Team Calculations -----
+        if not home_team_row.empty:
+            home_raw = home_team_row.iloc[0]["Home.4"]
+            home_goals_for, home_goals_against = extract_goals_parts(home_raw)
+            try:
+                home_games = float(home_team_row.iloc[0]["Home"])
+            except Exception as e:
+                home_games = None
+            home_goals_for_per_game = home_goals_for / home_games if home_goals_for is not None and home_games and home_games != 0 else None
+            home_goals_against_per_game = home_goals_against / home_games if home_goals_against is not None and home_games and home_games != 0 else None
+        else:
+            home_goals_for_per_game = None
+            home_goals_against_per_game = None
+
+        # ----- Away Team Calculations -----
+        if not away_team_row.empty:
+            away_raw = away_team_row.iloc[0]["Away.4"]
+            away_goals_for, away_goals_against = extract_goals_parts(away_raw)
+            try:
+                away_games = float(away_team_row.iloc[0]["Away"])
+            except Exception as e:
+                away_games = None
+            away_goals_for_per_game = away_goals_for / away_games if away_goals_for is not None and away_games and away_games != 0 else None
+            away_goals_against_per_game = away_goals_against / away_games if away_goals_against is not None and away_games and away_games != 0 else None
+        else:
+            away_goals_for_per_game = None
+            away_goals_against_per_game = None
+
+        # Display Goals For per Game
+        st.markdown('<div class="section-header">Goals For per Game</div>', unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            if home_goals_for_per_game is not None:
+                st.write(f"**{home_team} Goals For per Game:** {home_goals_for_per_game:.2f}")
+            else:
+                st.write(f"**{home_team} Goals For per Game:** N/A")
+        with col2:
+            if away_goals_for_per_game is not None:
+                st.write(f"**{away_team} Goals For per Game:** {away_goals_for_per_game:.2f}")
+            else:
+                st.write(f"**{away_team} Goals For per Game:** N/A")
+
+        # Display Goals Against per Game
+        st.markdown('<div class="section-header">Goals Against per Game</div>', unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            if home_goals_against_per_game is not None:
+                st.write(f"**{home_team} Goals Against per Game:** {home_goals_against_per_game:.2f}")
+            else:
+                st.write(f"**{home_team} Goals Against per Game:** N/A")
+        with col2:
+            if away_goals_against_per_game is not None:
+                st.write(f"**{away_team} Goals Against per Game:** {away_goals_against_per_game:.2f}")
+            else:
+                st.write(f"**{away_team} Goals Against per Game:** N/A")
+       
+     
+    # Calculate average league goals for and against
     if "league_table" in st.session_state and st.session_state["league_table"] is not None:
         league_table = st.session_state["league_table"]
-    # Assuming team names are in the 2nd column (index 1) of the league table
-        home_team_row = league_table[league_table.iloc[:, 1] == home_team]
-        away_team_row = league_table[league_table.iloc[:, 1] == away_team]
         
-        def extract_goals_parts(value):
-            try:
-                parts = value.split(":")
-                if len(parts) >= 2:
-                    goals_for = float(parts[0].strip())
-                    goals_against = float(parts[1].strip())
-                    return goals_for, goals_against
-                else:
-                    return None, None
-            except Exception as e:
-                return None, None
+        # Ensure the required columns exist
+        if "Goals" in league_table.columns and "M" in league_table.columns:
+            # Create new columns for Goals For (GF) and Goals Against (GA)
+            league_table["GF"] = league_table["Goals"].apply(
+                lambda x: float(x.split(":")[0].strip()) if isinstance(x, str) and ":" in x else None
+            )
+            league_table["GA"] = league_table["Goals"].apply(
+                lambda x: float(x.split(":")[1].strip()) if isinstance(x, str) and ":" in x else None
+            )
+            
+            # Calculate average goals for, against, and total per team
+            avg_GF = league_table["GF"].mean()
+            avg_GA = league_table["GA"].mean()
+            avg_total = (league_table["GF"] + league_table["GA"]).mean()
+            
+            # Calculate the mean number of matches played from column 'M'
+            avg_matches = league_table["M"].mean()
+            
+            # Calculate average goals per match: (GF+GA) per team divided by average matches
+            avg_goals_per_match = avg_total / avg_matches if avg_matches and avg_matches != 0 else None
+            
+            st.markdown('<div class="section-header">League Average Goals</div>', unsafe_allow_html=True)
+            
+            
+            if avg_goals_per_match is not None:
+                st.write(f"**Average Goals per Match:** {avg_goals_per_match:.2f}")
+            else:
+                st.write("**Average Goals per Match:** N/A")
+        else:
+            st.write("The required columns ('Goals' and/or 'M') were not found in the league table.")
 
-    # ----- Home Team Calculations -----
-    if not home_team_row.empty:
-        home_raw = home_team_row.iloc[0]["Home.4"]
-        home_goals_for, home_goals_against = extract_goals_parts(home_raw)
-        try:
-            home_games = float(home_team_row.iloc[0]["Home"])
-        except Exception as e:
-            home_games = None
-        home_goals_for_per_game = home_goals_for / home_games if home_goals_for is not None and home_games and home_games != 0 else None
-        home_goals_against_per_game = home_goals_against / home_games if home_goals_against is not None and home_games and home_games != 0 else None
+    # Calculate Expected Goals using the per game statistics
+    if home_goals_for_per_game is not None and away_goals_against_per_game is not None:
+        home_expected_goals = (home_goals_for_per_game + away_goals_against_per_game) / 2
     else:
-        home_goals_for_per_game = None
-        home_goals_against_per_game = None
+        home_expected_goals = None
 
-    # ----- Away Team Calculations -----
-    if not away_team_row.empty:
-        away_raw = away_team_row.iloc[0]["Away.4"]
-        away_goals_for, away_goals_against = extract_goals_parts(away_raw)
-        try:
-            away_games = float(away_team_row.iloc[0]["Away"])
-        except Exception as e:
-            away_games = None
-        away_goals_for_per_game = away_goals_for / away_games if away_goals_for is not None and away_games and away_games != 0 else None
-        away_goals_against_per_game = away_goals_against / away_games if away_goals_against is not None and away_games and away_games != 0 else None
+    if away_goals_for_per_game is not None and home_goals_against_per_game is not None:
+        away_expected_goals = (away_goals_for_per_game + home_goals_against_per_game) / 2
     else:
-        away_goals_for_per_game = None
-        away_goals_against_per_game = None
+        away_expected_goals = None
 
-    # Display Goals For per Game
-    st.markdown('<div class="section-header">Goals For per Game</div>', unsafe_allow_html=True)
+    if home_expected_goals is not None and away_expected_goals is not None:
+        total_expected_goals = ((home_expected_goals + away_expected_goals) + (avg_goals_per_match)) / 2
+    else:
+        total_expected_goals = None
+
+    # Display Expected Goals
+    st.markdown('<div class="section-header">Expected Goals</div>', unsafe_allow_html=True)
+
+    if total_expected_goals is not None:
+            st.write(f"**Total Expected Goals:** {total_expected_goals:.2f}")
+    else:
+            st.write("**Total Expected Goals:** N/A")
+
+    # Calculate team expected goals (xG) based on 1X2 odds and total expected goals using the provided formula
+
+    if total_expected_goals is not None:
+        # Sum of the probabilities for home win, draw, and away win
+        total_probability = home_win_prob + draw_prob_slider + away_win_prob
+
+        # Compute home and away xG based on the formula
+        home_xG = total_expected_goals * ((home_win_prob + 0.5 * draw_prob_slider) / total_probability)
+        away_xG = total_expected_goals * ((away_win_prob + 0.5 * draw_prob_slider) / total_probability)
+    else:
+        home_xG, away_xG = None, None
+
+    # Display the calculated team expected goals (xG)
+    st.markdown('<div class="section-header">Team Expected Goals (xG)</div>', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
-        if home_goals_for_per_game is not None:
-            st.write(f"**{home_team} Goals For per Game:** {home_goals_for_per_game:.2f}")
+        if home_xG is not None:
+            st.write(f"**{home_team} xG:** {home_xG:.2f}")
         else:
-            st.write(f"**{home_team} Goals For per Game:** N/A")
+            st.write(f"**{home_team} xG:** N/A")
     with col2:
-        if away_goals_for_per_game is not None:
-            st.write(f"**{away_team} Goals For per Game:** {away_goals_for_per_game:.2f}")
+        if away_xG is not None:
+            st.write(f"**{away_team} xG:** {away_xG:.2f}")
         else:
-            st.write(f"**{away_team} Goals For per Game:** N/A")
+            st.write(f"**{away_team} xG:** N/A")
 
-    # Display Goals Against per Game
-    st.markdown('<div class="section-header">Goals Against per Game</div>', unsafe_allow_html=True)
-    col1, col2 = st.columns(2)
-    with col1:
-        if home_goals_against_per_game is not None:
-            st.write(f"**{home_team} Goals Against per Game:** {home_goals_against_per_game:.2f}")
-        else:
-            st.write(f"**{home_team} Goals Against per Game:** N/A")
-    with col2:
-        if away_goals_against_per_game is not None:
-            st.write(f"**{away_team} Goals Against per Game:** {away_goals_against_per_game:.2f}")
-        else:
-            st.write(f"**{away_team} Goals Against per Game:** N/A")
-   
-    # Display goals statistics
-if "league_table" in st.session_state and st.session_state["league_table"] is not None:
-    st.markdown('<div class="section-header">League Table</div>', unsafe_allow_html=True)
-    st.dataframe(st.session_state["league_table"])
+with tab2:
+    # Display the league table
+    if "league_table" in st.session_state and st.session_state["league_table"] is not None:
+        league_table = st.session_state["league_table"]
+        # Show only the specified columns
+        league_table.rename(columns={'Unnamed: 0': 'Position'}, inplace=True)  # Rename the column
+        # Display league table as text
+        for index, row in league_table.iterrows():
+            team_name = row[league_table.columns[1]]
+            if pd.notna(team_name):  # Check if team name is not NaN
+                st.write(f"{row['Position']:.0f}. {team_name}")  # Adjust the index if necessary
