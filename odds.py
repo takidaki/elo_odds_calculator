@@ -10,8 +10,6 @@ import time
 # Set page title and icon
 st.set_page_config(page_title="Elo Ratings Odds Calculator", page_icon="odds_icon.png")
 
-
-
 # Dictionary of countries and leagues
 leagues_dict = {
         "England": ["UK1", "UK2", "UK3", "UK4", "UK5", "UK6N", "UK6S", "UK7N"],
@@ -138,7 +136,6 @@ leagues_dict = {
         "Tanzania": ["TZ1"],
         "Gambia": ["GM1"],
         "Sudan": ["SD1"]
-    
 }
 
 # List of spinner messages
@@ -290,8 +287,6 @@ st.sidebar.header("⚽ Select Match Details")
 selected_country = st.sidebar.selectbox("Select Country:", list(leagues_dict.keys()), index=0)
 selected_league = st.sidebar.selectbox("Select League:", leagues_dict[selected_country], index=0)
 
-
-
 # Create two tabs
 tab1, tab2 = st.tabs(["Elo Ratings Odds Calculator", "League Table"])
 
@@ -368,8 +363,6 @@ with tab1:
         with col2:
             st.write(f"**{away_team} Win Probability:** {away_win_prob:.2f}")
 
-       
-
         # Draw No Bet Odds Calculation
         home_draw_no_bet_odds = 1 / home_win_prob
         away_draw_no_bet_odds = 1 / away_win_prob
@@ -408,15 +401,12 @@ with tab1:
             default_draw_prob = 0.26  # Default value if no conditions are met
         
         # Slider for draw probability
-        
         draw_prob_slider = st.slider("Select Draw Probability:", 0.05, 0.4, default_draw_prob, 0.01, key="draw_prob_slider", help="Adjust the probability of a draw for the match.")
         
         # Adjusting win probabilities with draw probability
-
         remaining_prob = 1 - draw_prob_slider
         home_win = home_win_prob*remaining_prob
         away_win = away_win_prob*remaining_prob
-
 
         home_odds = 1 / home_win if home_win > 0 else float('inf')
         away_odds = 1 / away_win if away_win > 0 else float('inf')
@@ -432,54 +422,58 @@ with tab1:
         with col3:
             st.markdown(f"<div class='card'><div class='card-title'>Away Win (2)</div><div class='card-odds'>{away_odds:.2f}</div></div>", unsafe_allow_html=True)
         
+        # Initialize variables for goals statistics
+        home_goals_for_per_game = None
+        home_goals_against_per_game = None
+        away_goals_for_per_game = None
+        away_goals_against_per_game = None
         
+        # Helper function to extract goals from league table
+        def extract_goals_parts(value):
+            try:
+                parts = value.split(":")
+                if len(parts) >= 2:
+                    goals_for = float(parts[0].strip())
+                    goals_against = float(parts[1].strip())
+                    return goals_for, goals_against
+                else:
+                    return None, None
+            except Exception as e:
+                return None, None
         
-        
+        # Calculate goals statistics from league table if available
         if "league_table" in st.session_state and st.session_state["league_table"] is not None:
             league_table = st.session_state["league_table"]
-        # Assuming team names are in the 2nd column (index 1) of the league table
-            home_team_row = league_table[league_table.iloc[:, 1] == home_team]
-            away_team_row = league_table[league_table.iloc[:, 1] == away_team]
             
-            def extract_goals_parts(value):
+            # Find home team in league table
+            home_team_row = league_table[league_table.iloc[:, 1] == home_team]
+            if not home_team_row.empty:
+                home_raw = home_team_row.iloc[0]["Home.4"]
+                home_goals_for, home_goals_against = extract_goals_parts(home_raw)
                 try:
-                    parts = value.split(":")
-                    if len(parts) >= 2:
-                        goals_for = float(parts[0].strip())
-                        goals_against = float(parts[1].strip())
-                        return goals_for, goals_against
-                    else:
-                        return None, None
+                    home_games = float(home_team_row.iloc[0]["Home"])
+                    if home_games and home_games != 0:
+                        if home_goals_for is not None:
+                            home_goals_for_per_game = home_goals_for / home_games
+                        if home_goals_against is not None:
+                            home_goals_against_per_game = home_goals_against / home_games
                 except Exception as e:
-                    return None, None
-
-        # ----- Home Team Calculations -----
-        if not home_team_row.empty:
-            home_raw = home_team_row.iloc[0]["Home.4"]
-            home_goals_for, home_goals_against = extract_goals_parts(home_raw)
-            try:
-                home_games = float(home_team_row.iloc[0]["Home"])
-            except Exception as e:
-                home_games = None
-            home_goals_for_per_game = home_goals_for / home_games if home_goals_for is not None and home_games and home_games != 0 else None
-            home_goals_against_per_game = home_goals_against / home_games if home_goals_against is not None and home_games and home_games != 0 else None
-        else:
-            home_goals_for_per_game = None
-            home_goals_against_per_game = None
-
-        # ----- Away Team Calculations -----
-        if not away_team_row.empty:
-            away_raw = away_team_row.iloc[0]["Away.4"]
-            away_goals_for, away_goals_against = extract_goals_parts(away_raw)
-            try:
-                away_games = float(away_team_row.iloc[0]["Away"])
-            except Exception as e:
-                away_games = None
-            away_goals_for_per_game = away_goals_for / away_games if away_goals_for is not None and away_games and away_games != 0 else None
-            away_goals_against_per_game = away_goals_against / away_games if away_goals_against is not None and away_games and away_games != 0 else None
-        else:
-            away_goals_for_per_game = None
-            away_goals_against_per_game = None
+                    pass
+            
+            # Find away team in league table
+            away_team_row = league_table[league_table.iloc[:, 1] == away_team]
+            if not away_team_row.empty:
+                away_raw = away_team_row.iloc[0]["Away.4"]
+                away_goals_for, away_goals_against = extract_goals_parts(away_raw)
+                try:
+                    away_games = float(away_team_row.iloc[0]["Away"])
+                    if away_games and away_games != 0:
+                        if away_goals_for is not None:
+                            away_goals_for_per_game = away_goals_for / away_games
+                        if away_goals_against is not None:
+                            away_goals_against_per_game = away_goals_against / away_games
+                except Exception as e:
+                    pass
 
         # Display Goals For per Game
         st.markdown('<div class="section-header">Goals For per Game</div>', unsafe_allow_html=True)
@@ -509,89 +503,86 @@ with tab1:
             else:
                 st.write(f"**{away_team} Goals Against per Game:** N/A")
        
-     
-    # Calculate average league goals for and against
-    if "league_table" in st.session_state and st.session_state["league_table"] is not None:
-        league_table = st.session_state["league_table"]
-        
-        # Ensure the required columns exist
-        if "Goals" in league_table.columns and "M" in league_table.columns:
-            # Create new columns for Goals For (GF) and Goals Against (GA)
-            league_table["GF"] = league_table["Goals"].apply(
-                lambda x: float(x.split(":")[0].strip()) if isinstance(x, str) and ":" in x else None
-            )
-            league_table["GA"] = league_table["Goals"].apply(
-                lambda x: float(x.split(":")[1].strip()) if isinstance(x, str) and ":" in x else None
-            )
+        # Calculate average league goals
+        avg_goals_per_match = None
+        if "league_table" in st.session_state and st.session_state["league_table"] is not None:
+            league_table = st.session_state["league_table"]
             
-            # Calculate average goals for, against, and total per team
-            avg_GF = league_table["GF"].mean()
-            avg_GA = league_table["GA"].mean()
-            avg_total = (league_table["GF"] + league_table["GA"]).mean()
-            
-            # Calculate the mean number of matches played from column 'M'
-            avg_matches = league_table["M"].mean()
-            
-            # Calculate average goals per match: (GF+GA) per team divided by average matches
-            avg_goals_per_match = avg_total / avg_matches if avg_matches and avg_matches != 0 else None
-            
-            st.markdown('<div class="section-header">League Average Goals</div>', unsafe_allow_html=True)
-            
-            
-            if avg_goals_per_match is not None:
-                st.write(f"**Average Goals per Match:** {avg_goals_per_match:.2f}")
+            # Ensure the required columns exist
+            if "Goals" in league_table.columns and "M" in league_table.columns:
+                # Create new columns for Goals For (GF) and Goals Against (GA)
+                league_table["GF"] = league_table["Goals"].apply(
+                    lambda x: float(x.split(":")[0].strip()) if isinstance(x, str) and ":" in x else None
+                )
+                league_table["GA"] = league_table["Goals"].apply(
+                    lambda x: float(x.split(":")[1].strip()) if isinstance(x, str) and ":" in x else None
+                )
+                
+                # Calculate average goals for, against, and total per team
+                avg_GF = league_table["GF"].mean()
+                avg_GA = league_table["GA"].mean()
+                avg_total = (league_table["GF"] + league_table["GA"]).mean()
+                
+                # Calculate the mean number of matches played from column 'M'
+                avg_matches = league_table["M"].mean()
+                
+                # Calculate average goals per match: (GF+GA) per team divided by average matches
+                if avg_matches and avg_matches != 0:
+                    avg_goals_per_match = avg_total / avg_matches
+                
+                st.markdown('<div class="section-header">League Average Goals</div>', unsafe_allow_html=True)
+                
+                if avg_goals_per_match is not None:
+                    st.write(f"**Average Goals per Match:** {avg_goals_per_match:.2f}")
+                else:
+                    st.write("**Average Goals per Match:** N/A")
             else:
-                st.write("**Average Goals per Match:** N/A")
-        else:
-            st.write("The required columns ('Goals' and/or 'M') were not found in the league table.")
+                st.write("The required columns ('Goals' and/or 'M') were not found in the league table.")
 
-    # Calculate Expected Goals using the per game statistics
-    home_expected_goals = None
-    away_expected_goals = None
+        # Calculate Expected Goals using the per game statistics
+        home_expected_goals = None
+        away_expected_goals = None
+        total_expected_goals = None
 
-    if home_goals_for_per_game is not None and away_goals_against_per_game is not None:
-        home_expected_goals = (home_goals_for_per_game + away_goals_against_per_game) / 2
+        if home_goals_for_per_game is not None and away_goals_against_per_game is not None:
+            home_expected_goals = (home_goals_for_per_game + away_goals_against_per_game) / 2
 
-    if away_goals_for_per_game is not None and home_goals_against_per_game is not None:
-        away_expected_goals = (away_goals_for_per_game + home_goals_against_per_game) / 2
+        if away_goals_for_per_game is not None and home_goals_against_per_game is not None:
+            away_expected_goals = (away_goals_for_per_game + home_goals_against_per_game) / 2
 
-    total_expected_goals = None
-    if home_expected_goals is not None and away_expected_goals is not None:
-        total_expected_goals = ((home_expected_goals + away_expected_goals) + (avg_goals_per_match)) / 2
+        if home_expected_goals is not None and away_expected_goals is not None and avg_goals_per_match is not None:
+            total_expected_goals = ((home_expected_goals + away_expected_goals) + avg_goals_per_match) / 2
 
-    # Display Expected Goals
-    st.markdown('<div class="section-header">Expected Goals</div>', unsafe_allow_html=True,help= "This is the average number of goals expected in the match based on team form and league averages.")
-
-    if total_expected_goals is not None:
+        # Display Expected Goals
+        st.markdown('<div class="section-header">Expected Goals</div>', unsafe_allow_html=True)
+        if total_expected_goals is not None:
             st.write(f"**Total Expected Goals:** {total_expected_goals:.2f}")
-    else:
+        else:
             st.write("**Total Expected Goals:** N/A")
 
-    # Calculate team expected goals (xG) based on 1X2 odds and total expected goals using the provided formula
-
-    if total_expected_goals is not None:
-        # Sum of the probabilities for home win, draw, and away win
-        total_probability = home_win_prob + draw_prob_slider + away_win_prob
-
-        # Compute home and away xG based on the formula
-        home_xG = total_expected_goals * ((home_win_prob + 0.5 * draw_prob_slider) / total_probability)
-        away_xG = total_expected_goals * ((away_win_prob + 0.5 * draw_prob_slider) / total_probability)
-    else:
+        # Calculate team expected goals (xG) based on 1X2 odds and total expected goals
         home_xG, away_xG = None, None
+        if total_expected_goals is not None:
+            # Sum of the probabilities for home win, draw, and away win
+            total_probability = home_win_prob + draw_prob_slider + away_win_prob
 
-    # Display the calculated team expected goals (xG)
-    st.markdown('<div class="section-header">Team Expected Goals (xG)</div>', unsafe_allow_html=True)
-    col1, col2 = st.columns(2)
-    with col1:
-        if home_xG is not None:
-            st.write(f"**{home_team} xG:** {home_xG:.2f}")
-        else:
-            st.write(f"**{home_team} xG:** N/A")
-    with col2:
-        if away_xG is not None:
-            st.write(f"**{away_team} xG:** {away_xG:.2f}")
-        else:
-            st.write(f"**{away_team} xG:** N/A")
+            # Compute home and away xG based on the formula
+            home_xG = total_expected_goals * ((home_win_prob + 0.5 * draw_prob_slider) / total_probability)
+            away_xG = total_expected_goals * ((away_win_prob + 0.5 * draw_prob_slider) / total_probability)
+
+        # Display the calculated team expected goals (xG)
+        st.markdown('<div class="section-header">Team Expected Goals (xG)</div>', unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            if home_xG is not None:
+                st.write(f"**{home_team} xG:** {home_xG:.2f}")
+            else:
+                st.write(f"**{home_team} xG:** N/A")
+        with col2:
+            if away_xG is not None:
+                st.write(f"**{away_team} xG:** {away_xG:.2f}")
+            else:
+                st.write(f"**{away_team} xG:** N/A")
 
 with tab2:
     # Display the league table
