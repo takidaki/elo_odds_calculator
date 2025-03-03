@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import io
 import math
 import random
+import time
 
 # Set page title and icon
 st.set_page_config(page_title="Elo Ratings Odds Calculator", page_icon="odds_icon.png")
@@ -246,6 +247,28 @@ st.markdown("""\
         .button:hover {
             background-color: #218838;
         }
+        .card {
+            background-color: #f8f9fa;
+            border: 1px solid #007BFF;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        .card-title {
+            color: #007BFF;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .card-odds {
+            font-size: 24px;
+            font-weight: bold;
+            color: red;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -255,23 +278,40 @@ st.markdown('<div class="header">⚽ Elo Ratings Odds Calculator</div>', unsafe_
 # Explanation tooltip
 if "data_fetched" not in st.session_state:
     st.info("Use the sidebar to select a country and league. Click 'Get Ratings' to fetch the latest data.")
-
+# "How to Use" Section
+with st.sidebar.expander("How to Use This App", expanded=True):
+    st.write("1. Select Country and League.")
+    st.write("2. Click 'Get Ratings' to fetch the latest data.")
+    st.write("3. Select Home and Away Teams from the dropdowns.")
+    st.write("4. Adjust the Draw Probability Slider (optional).")
+    st.write("5. View calculated odds and expected goals.")
 # Sidebar for selecting country and league
 st.sidebar.header("⚽ Select Match Details")
 selected_country = st.sidebar.selectbox("Select Country:", list(leagues_dict.keys()), index=0)
 selected_league = st.sidebar.selectbox("Select League:", leagues_dict[selected_country], index=0)
 
+
+
 # Create two tabs
-tab1, tab2 = st.tabs(["Odds Calculator & Match Analysis", "League Table"])
+tab1, tab2 = st.tabs(["Elo Ratings Odds Calculator", "League Table"])
 
 with tab1:
     # All existing calculation code goes here
+    # Create a progress bar
+    progress_bar = st.progress(0)
+
     # Fetch data if not available
     if "home_table" not in st.session_state or "away_table" not in st.session_state or st.session_state.get("selected_league") != selected_league:
         if st.sidebar.button("Get Ratings", key="fetch_button", help="Fetch ratings and tables for selected country and league"):
             with st.spinner(random.choice(spinner_messages)):
+                for i in range(100):  # Simulate progress
+                    time.sleep(0.05)  # Simulate a delay
+                    progress_bar.progress(i + 1)  # Update progress bar
                 home_table, home_league_table = fetch_table(selected_country, selected_league, "home")
                 away_table, away_league_table = fetch_table(selected_country, selected_league, "away")
+                
+                # Reset progress bar after fetching
+                progress_bar.empty()
                 
                 if isinstance(home_table, pd.DataFrame) and isinstance(away_table, pd.DataFrame):
                     home_table = home_table.drop(home_table.columns[[0, 2, 3]], axis=1)
@@ -288,10 +328,13 @@ with tab1:
     if "home_table" in st.session_state and "away_table" in st.session_state:
         # Main layout to display selected teams and odds
         st.markdown(f'<div class="section-header">⚽ Match Details</div>', unsafe_allow_html=True)
-        
-        # Dropdown for selecting teams
-        home_team = st.selectbox("Select Home Team:", st.session_state["home_table"].iloc[:, 0])
-        away_team = st.selectbox("Select Away Team:", st.session_state["away_table"].iloc[:, 0])
+        #columns for layout 
+        col1, col2 = st.columns(2)
+        with col1:
+            # Dropdown for selecting teams
+            home_team = st.selectbox("Select Home Team:", st.session_state["home_table"].iloc[:, 0])
+        with col2:
+            away_team = st.selectbox("Select Away Team:", st.session_state["away_table"].iloc[:, 0])
 
         # Fetching team ratings
         home_team_data = st.session_state["home_table"][st.session_state["home_table"].iloc[:, 0] == home_team]
@@ -310,14 +353,12 @@ with tab1:
         away_win_prob = away/(away+home)
         
         # Display Ratings
-        st.markdown(f'<div class="section-header">Selected Teams Ratings</div>', unsafe_allow_html=True)
+        
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown(f"**{home_team} Home Rating**")
-            st.write(f"Rating: {home_rating}")
+            st.write(f"{home_team} Home Rating: {home_rating}")
         with col2:
-            st.markdown(f"**{away_team} Away Rating**")
-            st.write(f"Rating: {away_rating}")
+            st.write(f"{away_team} Away Rating: {away_rating}")
 
         # Display Win Probabilities
         st.markdown(f'<div class="section-header">Win Probability</div>', unsafe_allow_html=True)
@@ -327,15 +368,18 @@ with tab1:
         with col2:
             st.write(f"**{away_team} Win Probability:** {away_win_prob:.2f}")
 
+       
+
         # Draw No Bet Odds Calculation
         home_draw_no_bet_odds = 1 / home_win_prob
         away_draw_no_bet_odds = 1 / away_win_prob
         st.markdown(f'<div class="section-header">Draw No Bet Odds</div>', unsafe_allow_html=True)
-        col3, col4 = st.columns(2)  # Create two columns for layout
-        with col3:
-            st.write(f"**{home_team} Draw No Bet Odds:** {home_draw_no_bet_odds:.2f}")
-        with col4:
-            st.write(f"**{away_team} Draw No Bet Odds:** {away_draw_no_bet_odds:.2f}")
+        with st.container():  # Add a container for grouping
+            col3, col4 = st.columns(2)  # Create two columns for layout
+            with col3:
+                st.write(f"**{home_team} Draw No Bet Odds:** {home_draw_no_bet_odds:.2f}")
+            with col4:
+                st.write(f"**{away_team} Draw No Bet Odds:** {away_draw_no_bet_odds:.2f}")
 
         # Determine default value for draw probability slider based on home_win_prob
         if 0.01 <= home_win_prob <= 0.10:
@@ -364,7 +408,8 @@ with tab1:
             default_draw_prob = 0.26  # Default value if no conditions are met
         
         # Slider for draw probability
-        draw_prob_slider = st.slider("Select Draw Probability:", 0.05, 0.4, default_draw_prob, 0.01, key="draw_prob_slider")
+        
+        draw_prob_slider = st.slider("Select Draw Probability:", 0.05, 0.4, default_draw_prob, 0.01, key="draw_prob_slider", help="Adjust the probability of a draw for the match.")
         
         # Adjusting win probabilities with draw probability
 
@@ -381,11 +426,11 @@ with tab1:
         st.markdown(f'<div class="section-header">1X2 Betting Odds</div>', unsafe_allow_html=True)
         col1, col2, col3 = st.columns(3)  # Create three columns for layout
         with col1:
-            st.write(f"**{home_team} Win Odds**: {home_odds:.2f}")
+            st.markdown(f"<div class='card'><div class='card-title'>Home Win (1)</div><div class='card-odds'>{home_odds:.2f}</div></div>", unsafe_allow_html=True)
         with col2:
-            st.write(f"**Draw Odds**: {draw_odds:.2f}")
+            st.markdown(f"<div class='card'><div class='card-title'>Draw (X)</div><div class='card-odds'>{draw_odds:.2f}</div></div>", unsafe_allow_html=True)
         with col3:
-            st.write(f"**{away_team} Win Odds**: {away_odds:.2f}")
+            st.markdown(f"<div class='card'><div class='card-title'>Away Win (2)</div><div class='card-odds'>{away_odds:.2f}</div></div>", unsafe_allow_html=True)
         
         
         
@@ -515,7 +560,7 @@ with tab1:
         total_expected_goals = ((home_expected_goals + away_expected_goals) + (avg_goals_per_match)) / 2
 
     # Display Expected Goals
-    st.markdown('<div class="section-header">Expected Goals</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Expected Goals</div>', unsafe_allow_html=True,help= "This is the average number of goals expected in the match based on team form and league averages.")
 
     if total_expected_goals is not None:
             st.write(f"**Total Expected Goals:** {total_expected_goals:.2f}")
