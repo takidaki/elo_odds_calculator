@@ -92,7 +92,7 @@ leagues_dict = {
     "South-Korea": ["KR1", "KR2", "KR3"],
     "China": ["CN1", "CN2", "CN3"],
     "Iran": ["IA1", "IA2"],
-    "Australia": ["AU1", "AU2V", "AU2NSW", "AU2Q", "AU2S", "AU2W"],
+    "Australia": ["AU1", "AU2V", "AU2NSW", "AU2Q", "AU2S", "AU2W", "AU3V", "AU3NSW", "AU2T", "AU2NOR", "AU3Q", "AU2CAP", "AU3S"],
     "Saudi-Arabia": ["SA1", "SA2"],
     "Thailand": ["TH1", "TH2"],
     "Qatar": ["QA1", "QA2"],
